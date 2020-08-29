@@ -19,3 +19,8 @@
   command: helm install cert-manager jetstack/cert-manager --kubeconfig {{ kubeconfig }} --namespace cert-manager --set installCRDs=true
   when: "'cert-manager' not in helm_list_out.stdout"
 
+- name: Create selfsigned issuer
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'cert-manager/selfsigned-issuer.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"

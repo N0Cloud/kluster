@@ -1,0 +1,13 @@
+---
+- name: Create ingress namespace
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'ingress/ns.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Move ingress to its own namespace
+  lineinfile:
+    path: /var/lib/rancher/k3s/server/manifests/traefik.yaml
+    regex: '^(.*)namespace: (.*)$'
+    line: '\1namespace: ingress'
+    backrefs: yes

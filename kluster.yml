@@ -1,0 +1,28 @@
+---
+- hosts: kube_cluster
+  gather_facts: yes
+  become: yes
+  roles:
+    - role: prepare
+    - role: kubernetes/cluster
+    - role: raspbian
+
+- hosts: master
+  become: yes
+  roles:
+    - role: kubernetes/master
+
+- hosts: node
+  become: yes
+  roles:
+    - role: kubernetes/node
+
+- hosts: storage
+  become: yes
+  roles:
+    - role: nfs
+
+- hosts: master
+  become: yes
+  roles:
+    - role: kubernetes/apps

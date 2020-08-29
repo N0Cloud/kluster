@@ -1,0 +1,131 @@
+---
+- name: Regenerate machine-id
+  shell: (test -e /etc/machine-id || rm /etc/machine-id) && systemd-machine-id-setup
+
+- name: Install Docker prerequisites
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    update_cache: yes
+
+- name: Apt upgrade
+  apt:
+    name: "*"
+    state: latest
+    update_cache: yes
+
+- name: Install additional packages
+  apt:
+    name: 
+      - sudo
+      - file
+      - dbus
+      - bc
+      - bash-completion
+      - hdparm
+      - ack
+      - telnet
+      - iotop
+      - sysstat
+      - nfs-common
+      - git
+      - less
+      - vim
+      - build-essential
+      - iptables
+      - ipset
+      - pciutils
+      - lshw
+      - iperf3
+      - net-tools
+      - jq
+      - python-pip
+      - python-setuptools
+      - python-dev
+
+- name: Set local ssh path
+  set_fact:
+    local_ssh_path: "{{ lookup('env','HOME') }}/.ssh"
+
+- debug:
+    var: local_ssh_path
+
+- name: Gen public key
+  shell: "ssh-keygen -y -f {{ local_ssh_path }}/id_rsa > {{ local_ssh_path }}/id_rsa.pub"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  
+
+# Place a public key file in the same dir and uncomment lines below to add key to the new user
+- name: Set up authorized keys for the user
+  authorized_key:
+    user: "{{ new_user }}"
+    key: "{{item}}"
+  with_file:
+    - "{{ local_ssh_path }}/id_rsa.pub"
+
+- name: Make sure we have a "wheel" group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow "wheel" group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "^%wheel"
+    line: "%wheel ALL=(ALL) NOPASSWD: ALL"
+    validate: "visudo -cf %s"
+
+- name: Disable swap
+  mount:
+    name: swap
+    fstype: swap
+    state: absent
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Update locale
+  command: echo en_US UTF-8 | tee --append /etc/locale.gen
+
+- name: Generate locale
+  command: locale-gen
+
+- name: Reconfigure locale
+  command: dpkg-reconfigure locales --frontend noninteractive
+
+- name: Change hostname
+  hostname:
+    name: "{{inventory_hostname}}"
+
+- name: Build hosts file
+  lineinfile:
+    dest: /etc/hosts
+    regexp: ".*{{ item }} {{item}}.home$"
+    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{item}} {{item}}.home" 
+    state: present
+  when: hostvars[item]['ansible_facts']['default_ipv4'] is defined
+  with_items: "{{ groups['kube_cluster'] | difference(inventory_hostname) }}"
+
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: yes
+
+- name: Enable IPv6 forwarding
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: "1"
+    state: present
+    reload: yes
+
+- name: Force Gathering Facts
+  setup:

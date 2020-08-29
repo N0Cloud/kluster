@@ -1,0 +1,10 @@
+---
+k3s_version: v1.18.8+k3s1
+helm_version: v3.3.0
+systemd_dir: /etc/systemd/system
+master_ip: "{{ hostvars[groups['master'][0]]['ansible_host'] | default(groups['master'][0]) }}"
+extra_server_args: ""
+extra_agent_args: ""
+
+storage_mount_path: /data
+nfs_server_ip: "{{ hostvars[groups['storage'][0]]['ansible_host'] | default(groups['storage'][0]) }}"

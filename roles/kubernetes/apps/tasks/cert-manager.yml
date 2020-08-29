@@ -1,0 +1,21 @@
+---
+- name: Create cert-manager namespace
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'cert-manager/ns.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Install cert-manager helm repo
+  command: helm repo add jetstack https://charts.jetstack.io
+
+- name: Update helm repo
+  command: helm repo update
+
+- name: Check if cert-manager is installed
+  shell: helm list --kubeconfig {{ kubeconfig }} -n cert-manager
+  register: helm_list_out
+
+- name: Install cert-manager
+  command: helm install cert-manager jetstack/cert-manager --kubeconfig {{ kubeconfig }} --namespace cert-manager --set installCRDs=true
+  when: "'cert-manager' not in helm_list_out.stdout"
+

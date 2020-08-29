@@ -1,0 +1,35 @@
+---
+- name: Configure fstab
+  mount:
+    backup: yes
+    boot: yes
+    src: "{{ nfs_disk }}"
+    path: "{{ storage_mount_path }}"
+    fstype: "{{ nfs_disk_type }}"
+    opts: "defaults,errors=remount-ro,auto,exec,rw"
+    state: mounted
+  when: nfs_disk is defined
+
+- name: Install nfs server
+  apt:
+    name:
+      - nfs-kernel-server
+      - nfs-common
+    update_cache: yes
+
+- name: Configure nfs exports
+  template:
+    src: "exports.j2"
+    dest: "/etc/exports"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Apply config
+  command: exportfs -a
+
+- name: Enable and restart nfs service
+  systemd:
+    name: nfs-kernel-server
+    state: started
+    enabled: yes

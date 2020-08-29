@@ -1,0 +1,12 @@
+---
+- name: Install ddclient
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'ddclient/ddclient.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Configure ddclient
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'ddclient/ddclient-config.yml.j2') }}"
+    kubeconfig: "{{ kubeconfig }}"

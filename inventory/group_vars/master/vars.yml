@@ -1,0 +1,9 @@
+---
+ddclient_zone: nocloud.app
+ddclient_domains:
+  - wol.nocloud.app
+  - cloud.nocloud.app
+
+# Need to be provided in vault
+# cloudflare_login:
+# cloudflare_password:

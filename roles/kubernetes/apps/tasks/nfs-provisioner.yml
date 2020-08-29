@@ -1,0 +1,12 @@
+---
+- name: Install nfs provisioner
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'storage/nfs-storage.yml.j2') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Patch nfs provisioner
+  command: "{{ item }}"
+  with_items:
+    - "kubectl patch storageclass managed-nfs-storage -p '{\"metadata\": {\"annotations\":{\"storageclass.kubernetes.io/is-default-class\":\"true\"}}}'"
+    - "kubectl patch deployment nfs-client-provisioner -n nfs-storage --patch '{\"spec\": {\"template\": {\"spec\": {\"nodeSelector\": {\"beta.kubernetes.io/arch\": \"arm64\"}}}}}'"

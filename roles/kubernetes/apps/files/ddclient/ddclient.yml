@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ddclient
+  labels:
+    name: ddclient
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ddclient
+  namespace: ddclient
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ddclient
+  template:
+    metadata:
+      labels:
+        app: ddclient
+    spec:      
+      containers:
+        - name: ddclient
+          image: lsioarmhf/ddclient:latest
+          volumeMounts:
+          - mountPath: /config
+            name: config
+          env:
+            - name: PGID
+              value: "1000"
+            - name: PUID
+              value: "1000"
+      volumes:
+        - name: config
+          configMap:
+            name: ddclient-conf

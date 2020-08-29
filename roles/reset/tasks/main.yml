@@ -39,6 +39,8 @@
     - /var/lib/rancher/k3s
     - /var/lib/kubelet
     - /usr/local/bin/k3s
+    - /usr/local/bin/helm
+    - /usr/local/bin/linkerd
 
 - name: daemon_reload
   systemd:

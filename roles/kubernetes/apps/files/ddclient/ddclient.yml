@@ -5,6 +5,8 @@ metadata:
   name: ddclient
   labels:
     name: ddclient
+  annotations:
+    linkerd.io/inject: enabled
 
 ---
 kind: Deployment

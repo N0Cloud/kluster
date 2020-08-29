@@ -11,6 +11,8 @@
     name:
       - openshift
 
+- include: linkerd.yml
+
 - include: nfs-provisioner.yml
 
 - include: ddclient.yml

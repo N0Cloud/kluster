@@ -1,6 +1,7 @@
 ---
 
 - name: Copy K3s service file
+  register: k3s_service
   template:
     src: "k3s.service.j2"
     dest: "{{ systemd_dir }}/k3s-node.service"
@@ -14,3 +15,4 @@
     daemon_reload: yes
     state: restarted
     enabled: yes
+  when: install_k3s or k3s_service.changed

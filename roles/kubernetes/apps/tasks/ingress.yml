@@ -8,6 +8,6 @@
 - name: Move ingress to its own namespace
   lineinfile:
     path: /var/lib/rancher/k3s/server/manifests/traefik.yaml
-    regex: '^(.*)namespace: (.*)$'
-    line: '\1namespace: ingress'
-    backrefs: yes
+    insertafter: '^spec:$'
+    line: "  targetNamespace: ingress"
+    firstmatch: yes

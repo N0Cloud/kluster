@@ -36,16 +36,23 @@
     - ansible_facts.architecture is search("arm")
     - ansible_facts.userspace_bits == "32"
 
+- name: Check if linkerd is already running
+  command: linkerd check config --kubeconfig {{ kubeconfig }}
+  failed_when: false
+  register: linkerd_check
+
 - name: Get linkerd manifest
-  shell: linkerd install --kubeconfig {{ kubeconfig }} --ignore-cluster
+  shell: linkerd install --kubeconfig {{ kubeconfig }}
   changed_when: false
   register: linkerd_install
+  when: linkerd_check.rc != 0
 
 - name: Install linkerd
   k8s:
     state: present
     definition: "{{ linkerd_install.stdout }}"
     kubeconfig: "{{ kubeconfig }}"
+  when: linkerd_check.rc != 0
 
 - name: Wait for linkerd to be ready
   command: linkerd check --kubeconfig {{ kubeconfig }}

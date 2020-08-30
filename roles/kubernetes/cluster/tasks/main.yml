@@ -10,7 +10,8 @@
   register: k3s_version_result
 
 - set_fact:
-    install_k3s: "{% if k3s_version in k3s_version_result.stdout %}false{% else %}true{% endif %}"
+    install_k3s: "{% if k3s_stat_result.stat.exists and k3s_version in k3s_version_result.stdout %}false{% else %}true{% endif %}"
+
 
 - name: Delete k3s if already present
   file:

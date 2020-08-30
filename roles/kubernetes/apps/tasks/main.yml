@@ -11,6 +11,8 @@
     name:
       - openshift
 
+- include: cert-manager.yml
+
 - include: linkerd.yml
 
 - include: nfs-provisioner.yml
@@ -18,5 +20,3 @@
 - include: ingress.yml
 
 - include: ddclient.yml
-
-- include: cert-manager.yml

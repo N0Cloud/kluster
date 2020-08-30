@@ -38,6 +38,7 @@
 
 - name: Check if linkerd is already running
   command: linkerd check config --kubeconfig {{ kubeconfig }}
+  changed_when: false
   failed_when: false
   register: linkerd_check
 

@@ -11,3 +11,9 @@
     insertafter: '^spec:$'
     line: "  targetNamespace: ingress"
     firstmatch: yes
+
+- name: Try to delete ingress in kube-system namespace
+  shell: helm --kubeconfig {{ kubeconfig }} -n kube-system delete traefik
+  register: traefik_delete
+  failed_when: false
+  changed_when: "'uninstalled' in traefik_delete.stdout"

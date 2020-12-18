@@ -1,0 +1,39 @@
+---
+- name: Create router-monitor namespace
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'router-monitor/ns.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Install stable helm repo
+  command: helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+
+- name: Update helm repo
+  command: helm repo update
+
+- name: Load snmp exporter config
+  include_vars:
+    file: "{{ playbook_dir }}/roles/kubernetes/apps/files/router-monitor/snmp-exporter/snmp.yml"
+    name: snmp_config
+
+- name: Create temp dir
+  tempfile:
+    state: directory
+    suffix: .snmp-exporter
+  register: snmp_tempdir
+
+- name: Generate helm chart config
+  template:
+    src: router-monitor/snmp-exporter/values.yml.j2
+    dest: "{{ snmp_tempdir.path }}/values.yml"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Check if snmp exporter is installed
+  shell: helm list --kubeconfig {{ kubeconfig }} -n router-monitor
+  register: helm_list_out
+
+- name: Install snmp exporter
+  command: "helm install router-snmp-exporter stable/prometheus-snmp-exporter --kubeconfig {{ kubeconfig }} --namespace router-monitor -f {{ snmp_tempdir.path }}/values.yml --wait"
+  when: "'router-snmp-exporter' not in helm_list_out.stdout"

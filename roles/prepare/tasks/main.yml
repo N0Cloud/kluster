@@ -102,8 +102,8 @@
 - name: Build hosts file
   lineinfile:
     dest: /etc/hosts
-    regexp: ".*{{ item }} {{item}}.home$"
-    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{item}} {{item}}.home" 
+    regexp: ".*{{ item }} {{item}}.local$"
+    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{item}} {{item}}.local" 
     state: present
   when: hostvars[item]['ansible_facts']['default_ipv4'] is defined
   with_items: "{{ groups['kube_cluster'] | difference(inventory_hostname) }}"

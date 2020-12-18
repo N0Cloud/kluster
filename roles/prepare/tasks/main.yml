@@ -2,15 +2,6 @@
 # - name: Regenerate machine-id
 #   shell: (test -e /etc/machine-id || rm /etc/machine-id) && systemd-machine-id-setup
 
-- name: Install Docker prerequisites
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - software-properties-common
-    update_cache: yes
-
 - name: Apt upgrade
   apt:
     name: "*"
@@ -45,6 +36,10 @@
       - python-pip
       - python-setuptools
       - python-dev
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
 
 - name: Set local ssh path
   set_fact:

@@ -20,3 +20,5 @@
 - include: ingress.yml
 
 - include: ddclient.yml
+
+- include: prometheus-operator.yml

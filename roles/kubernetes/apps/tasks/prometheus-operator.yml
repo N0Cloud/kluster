@@ -1,0 +1,6 @@
+---
+- name: Install prometheus operator
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'prometheus-operator/bundle.yaml') }}"
+    kubeconfig: "{{ kubeconfig }}"

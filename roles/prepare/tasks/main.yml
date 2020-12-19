@@ -33,9 +33,9 @@
       - iperf3
       - net-tools
       - jq
-      - python-pip
-      - python-setuptools
-      - python-dev
+      - python3-pip
+      - python3-setuptools
+      - python3-dev
       - apt-transport-https
       - ca-certificates
       - curl

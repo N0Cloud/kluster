@@ -6,12 +6,15 @@
     dest: "{{ systemd_dir }}/k3s.service"
     owner: root
     group: root
-    mode: 0755
+    mode: 644
+
+- name: Systemd daemon reload
+  systemd:
+    daemon_reload: yes
 
 - name: Enable and check K3s service
   systemd:
     name: k3s
-    daemon_reload: yes
     state: restarted
     enabled: yes
   when: install_k3s or k3s_service.changed

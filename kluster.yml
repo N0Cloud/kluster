@@ -2,6 +2,7 @@
 - hosts: kube_cluster
   gather_facts: yes
   become: yes
+  any_errors_fatal: true
   roles:
     - role: prepare
     - role: kubernetes/cluster
@@ -9,20 +10,24 @@
 
 - hosts: master
   become: yes
+  any_errors_fatal: true
   roles:
     - role: kubernetes/master
 
 - hosts: node
   become: yes
+  any_errors_fatal: true
   roles:
     - role: kubernetes/node
 
 - hosts: storage
   become: yes
+  any_errors_fatal: true
   roles:
     - role: nfs
 
 - hosts: master
   become: yes
+  any_errors_fatal: true
   roles:
     - role: kubernetes/apps

@@ -13,6 +13,8 @@
 
 - include: cert-manager.yml
 
+- include: cloudflare-issuer.yml
+
 - include: linkerd.yml
 
 - include: nfs-provisioner.yml
@@ -22,3 +24,5 @@
 - include: ddclient.yml
 
 - include: prometheus-operator.yml
+
+- include: bitwarden.yml

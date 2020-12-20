@@ -1,0 +1,24 @@
+---
+- name: Install Cloudflare origin issuer - ns
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'cert-manager/cloudflare-issuer/ns.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Install Cloudflare origin issuer - crd
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'cert-manager/cloudflare-issuer/crd.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Install Cloudflare origin issuer - rbac
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'cert-manager/cloudflare-issuer/rbac.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Install Cloudflare origin issuer - deploy
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'cert-manager/cloudflare-issuer/deploy.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"

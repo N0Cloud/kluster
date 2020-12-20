@@ -7,3 +7,4 @@ ddclient_domains:
 # Need to be provided in vault
 # cloudflare_login:
 # cloudflare_password:
+# cloudflare_origin_key:

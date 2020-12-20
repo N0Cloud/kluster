@@ -1,2 +1,6 @@
 ---
 kubeconfig: ~{{ ansible_user }}/.kube/config
+
+bitwarden_db_name: bitwarden
+bitwarden_db_user: bitwarden
+#bitwarden_db_pass:

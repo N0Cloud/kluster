@@ -1,0 +1,83 @@
+---
+- name: Create bitwarden namespace
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'bitwarden/ns.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Install bitnami helm repo
+  command: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+- name: Update helm repo
+  command: helm repo update
+
+- name: Check if postgres is installed
+  shell: helm list --kubeconfig {{ kubeconfig }} -n bitwarden
+  register: helm_list_out
+
+- set_fact:
+    install_bitwarden_postgres: "{{ 'postgres-bitwarden' not in helm_list_out.stdout }}"
+
+- name: create temporary config directory
+  tempfile:
+    state: directory
+    suffix: postgres_bitwarden
+  register: postgres_tempdir
+  when: install_bitwarden_postgres
+
+- name: Generate postgres password
+  set_fact:
+    bitwarden_db_pass: "{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits') }}"
+  when: install_bitwarden_postgres
+
+- name: Generate chart values for postgres
+  template:
+      src: "bitwarden/postgresql/values.yml.j2"
+      dest: "{{ postgres_tempdir.path }}/values.yml"
+      mode: 600
+  when: install_bitwarden_postgres
+
+- name: Install postgres
+  command: helm install postgres-bitwarden bitnami/postgresql --kubeconfig {{ kubeconfig }} --namespace bitwarden -f {{ postgres_tempdir.path }}/values.yml --wait
+  when: install_bitwarden_postgres
+
+- name: Clean config
+  file:
+    state: absent
+    path: "{{ postgres_tempdir.path }}"
+  when: install_bitwarden_postgres
+
+# - name: Install Cloudflare origin issuer - origin key
+#   k8s:
+#     state: present
+#     definition: "{{ lookup('template', 'bitwarden/cloudflare-origin-key.yml.j2') }}"
+#     kubeconfig: "{{ kubeconfig }}"
+
+# - name: Install Cloudflare origin issuer - issuer
+#   k8s:
+#     state: present
+#     definition: "{{ lookup('file', 'bitwarden/issuer.yml') }}"
+#     kubeconfig: "{{ kubeconfig }}"
+
+- name: Set database url
+  set_fact:
+    bitwarden_db_url: "postgresql://{{ bitwarden_db_user|urlencode }}:{{ bitwarden_db_pass|urlencode }}@postgres-bitwarden-postgresql:5432/{{ bitwarden_db_name|urlencode }}"
+  when: install_bitwarden_postgres
+
+- name: Create bitwarden db secret
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'bitwarden/postgresql/database-secret.yml.j2') }}"
+    kubeconfig: "{{ kubeconfig }}"
+  when: install_bitwarden_postgres
+
+- name: Install bitwarden
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'bitwarden/bitwarden.yml') }}"
+    kubeconfig: "{{ kubeconfig }}"
+  register: bitwarden_result
+
+- fail:
+    msg: "Postgres and bitwarden need to be installed at the same time"
+  when: not install_bitwarden_postgres and bitwarden_result.changed

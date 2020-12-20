@@ -1,0 +1,198 @@
+image:
+  registry: docker.io
+  repository: postgres
+  tag: 13.1
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  # pullSecrets:
+  #   - myRegistryKeySecretName
+
+  ## Set to true if you would like to see extra information on logs
+  ## It turns BASH and NAMI debugging in minideb
+  ## ref:  https://github.com/bitnami/minideb-extras/#turn-on-bash-debugging
+  ##
+  debug: false
+
+##
+## Init containers parameters:
+## volumePermissions: Change the owner of the persist volume mountpoint to RunAsUser:fsGroup
+##
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/minideb
+    tag: buster
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+  ## Init container Security Context
+  ## Note: the chown of the data folder is done to securityContext.runAsUser
+  ## and not the below volumePermissions.securityContext.runAsUser
+  ## When runAsUser is set to special value "auto", init container will try to chwon the
+  ## data folder to autodetermined user&group, using commands: `id -u`:`id -G | cut -d" " -f2`
+  ## "auto" is especially useful for OpenShift which has scc with dynamic userids (and 0 is not allowed).
+  ## You may want to use this volumePermissions.securityContext.runAsUser="auto" in combination with
+  ## pod securityContext.enabled=false and shmVolume.chmod.enabled=false
+  ##
+  securityContext:
+    runAsUser: 0
+
+## Pod Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
+securityContext:
+  enabled: true
+  fsGroup: 1001
+
+## Container Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+
+## PostgreSQL user (has superuser privileges if username is `postgres`)
+## ref: https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md#setting-the-root-password-on-first-run
+##
+postgresqlUsername: {{ bitwarden_db_user }}
+
+## PostgreSQL password
+## ref: https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md#setting-the-root-password-on-first-run
+##
+postgresqlPassword: {{ bitwarden_db_pass }}
+
+## PostgreSQL password using existing secret
+## existingSecret: secret
+##
+
+## Mount PostgreSQL secret as a file instead of passing environment variable
+# usePasswordFile: false
+
+## Create a database
+## ref: https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md#creating-a-database-on-first-run
+##
+postgresqlDatabase: {{ bitwarden_db_name }}
+
+## PostgreSQL data dir
+## ref: https://github.com/bitnami/bitnami-docker-postgresql/blob/master/README.md
+##
+postgresqlDataDir: /data/pgdata
+
+## An array to add extra environment variables
+## For example:
+## extraEnv:
+##   - name: FOO
+##     value: "bar"
+##
+# extraEnv:
+extraEnv: []
+
+## PostgreSQL client authentication configuration
+## Specify content for pg_hba.conf
+## Default: do not create pg_hba.conf
+## Alternatively, you can put your pg_hba.conf under the files/ directory
+# pgHbaConfiguration: |-
+#   local all all trust
+#   host all all localhost trust
+#   host mydatabase mysuser 192.168.0.0/24 md5
+
+## ConfigMap with PostgreSQL configuration
+## NOTE: This will override postgresqlConfiguration and pgHbaConfiguration
+# configurationConfigMap:
+
+## ConfigMap with PostgreSQL extended configuration
+# extendedConfConfigMap:
+
+## initdb scripts
+## Specify dictionary of scripts to be run at first boot
+## Alternatively, you can put your scripts under the files/docker-entrypoint-initdb.d directory
+##
+# initdbScripts:
+#   my_init_script.sh: |
+#      #!/bin/sh
+#      echo "Do something."
+
+## ConfigMap with scripts to be run at first boot
+## NOTE: This will override initdbScripts
+# initdbScriptsConfigMap:
+
+## Secret with scripts to be run at first boot (in case it contains sensitive information)
+## NOTE: This can work along initdbScripts or initdbScriptsConfigMap
+# initdbScriptsSecret:
+
+## PostgreSQL data Persistent Volume Storage Class
+## If defined, storageClassName: <storageClass>
+## If set to "-", storageClassName: "", which disables dynamic provisioning
+## If undefined (the default) or set to null, no storageClassName spec is
+##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+##   GKE, AWS & OpenStack)
+##
+persistence:
+  enabled: true
+  ## A manually managed Persistent Volume and Claim
+  ## If defined, PVC must be created manually before volume will be bound
+  ## The value is evaluated as a template, so, for example, the name can depend on .Release or .Chart
+  ##
+  # existingClaim:
+
+  ## The path the volume will be mounted at, useful when using different
+  ## PostgreSQL images.
+  ##
+  mountPath: /data/
+
+  ## The subdirectory of the volume to mount to, useful in dev environments
+  ## and one PV for multiple services.
+  ##
+  subPath: ''
+
+  storageClass: "managed-nfs-storage"
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+  ## selector can be used to match an existing PersistentVolume
+  ## selector:
+  ##   matchLabels:
+  ##     app: my-app
+  selector: {}
+
+## updateStrategy for PostgreSQL StatefulSet and its reads StatefulSets
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+##
+updateStrategy:
+  type: RollingUpdate
+
+## Configure extra options for liveness and readiness probes
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+##
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1

@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-service-key
+  namespace: bitwarden
+data:
+  key: {{ cloudflare_origin_key | string | b64encode }}

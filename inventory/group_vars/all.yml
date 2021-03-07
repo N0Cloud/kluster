@@ -1,10 +1,10 @@
 ---
-k3s_version: v1.19.5+k3s2
-helm_version: v3.4.2
-linkerd_version: stable-2.9.1
+k3s_version: v1.19.8+k3s1
+helm_version: v3.5.2
+linkerd_version: stable-2.9.4
 systemd_dir: /etc/systemd/system
 master_ip: "{{ hostvars[groups['master'][0]]['ansible_host'] | default(groups['master'][0]) }}"
-extra_server_args: ""
+extra_server_args: "--disable servicelb"
 extra_agent_args: ""
 
 storage_mount_path: /data

@@ -80,4 +80,4 @@
 
 - fail:
     msg: "Postgres and bitwarden need to be installed at the same time"
-  when: not install_bitwarden_postgres and bitwarden_result.changed
+  when: not install_bitwarden_postgres and bitwarden_result.changed and bitwarden_result.result.results|selectattr('method', '!=', 'patch')|list|length > 0

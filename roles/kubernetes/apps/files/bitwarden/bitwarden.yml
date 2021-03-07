@@ -36,7 +36,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: bitwardenrs
-        image: bitwardenrs/server:1.17.0
+        image: bitwardenrs/server:1.19.0
         imagePullPolicy: IfNotPresent
         env:
         - name: DATABASE_URL
@@ -107,6 +107,7 @@ metadata:
   annotations:
      cert-manager.io/cluster-issuer: selfsigned-issuer
      traefik.ingress.kubernetes.io/redirect-entry-point: https
+     ingress.kubernetes.io/custom-request-headers: l5d-dst-override:bitwarden.bitwarden.svc.cluster.local:8080
 spec:
   tls:
   - hosts:
